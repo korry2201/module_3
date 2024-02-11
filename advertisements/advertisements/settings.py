@@ -56,7 +56,7 @@ ROOT_URLCONF = 'advertisements.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [Path.joinpath(BASE_DIR, 'template')],                 # указываем ссылку на папку с html-шаблонами
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,6 +118,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    Path.joinpath(BASE_DIR, 'static') # joinpath - объединение путей до файла
+]                                     # BASE_DIR - корневая директория
+                                      # 'static' - папка со статическими файлами
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
