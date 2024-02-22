@@ -19,6 +19,5 @@ from django.urls import path, include # объект для связи "Босс
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('app_advertisement.urls')),
-    path('', include('app_lesson_8.urls'))
+    path('', include('app_advertisement.urls')),    
 ]
