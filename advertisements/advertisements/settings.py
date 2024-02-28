@@ -123,6 +123,9 @@ STATICFILES_DIRS = [
 ]                                     # BASE_DIR - корневая директория
                                       # 'static' - папка со статическими файлами
 
+MEDIA_ROOT = Path.joinpath(BASE_DIR, 'media/')
+MEDIA_URL = 'media/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

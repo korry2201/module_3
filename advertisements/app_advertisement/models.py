@@ -16,6 +16,13 @@ class Advertisement(models.Model):
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
     image = models.ImageField('Изображение', upload_to='advertisements/')
 
+    @admin.display(description='Фото')
+    def imageing(self):
+        if self.image:
+            return format_html(
+                '<img src="{url}" style="max-width: 80px; max-height: 80px;", url=self.image.url>'
+            )
+
     @admin.display(description='Дата создания')
     def created_date(self):
         from django.utils import timezone
