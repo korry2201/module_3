@@ -1,29 +1,46 @@
 from django.http import HttpResponse        # импорт объекта response для ответа сервера клиенту
 from django.shortcuts import render, redirect
-from django.urls  import reverse
+from django.urls  import reverse, reverse_lazy
+from django.core import validators
 from .models import Advertisement
-from .forms import AdvertisementForm
+from .forms import AdvertisementForm, New_model_form
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.db.models import Count
+
+User = get_user_model()
 
 def index(request):                         
-    advertisements = Advertisement.objects.all()   #Вытаскиваем инфу из БД и вкладываем ее в переменную
-    context = {'advertisements': advertisements}
+    title = request.GET.get('query')             # узнаем, что ввел наш человечек
+    if title:                                    # если название, которое он ввел, существует
+        advertisements = Advertisement.objects.filter(title__icontains=title) # выводим объявления, соответсвующие запросу человечка
+    else:                                        # если введенного названия нет, то
+        advertisements = Advertisement.objects.all()  # выводим все объявления, которые есть
+    context = {'advertisements': advertisements, 'title' : title}
     # return HttpResponse('Успешно')        # функция, возвращающая ответ "Успешно" на запрос пользователя
-    return render(request, 'index.html', context)    # подключение к основному коду html-шаблона, который будет определять внешний вид главной страницы сайта 
+    return render(request, 'app_advertisement/index.html', context)    # подключение к основному коду html-шаблона, который будет определять внешний вид главной страницы сайта 
 
 def top_sellers(request):                      # функция render отправляет что-либо на сервер(сайт) 
-    return render(request, 'top-sellers.html')# в кавычках прописывается название файла, который необходимо отправить на сервер(сайт)
+    users = User.objects.annotate(adv_count=Count('advertisement')).order_by('-adv_count')
+    context = {'users' : users}
+    return render(request, 'app_advertisement/top-sellers.html', context)# в кавычках прописывается название файла, который необходимо отправить на сервер(сайт)
 
-def advertisement_post(request):                                  
-    if request.method == 'POST':                                  # узнаем тип произошедщего запроса, и если это POST-запрос, делаем следующие действия
-        form = AdvertisementForm(request.POST, request.FILES)     # создаем экземпляр класса, куда пойдут все данные и файлы от "анкеты" пользователя
-        if form.is_valid():                                       # узнаем - валидны ли данные ползователя, если да, то выполняем следующие действия
-            advertisement = Advertisement(**form.cleaned_data)    # создаем экземпляр класса объявлений и в качестве параметров закидываем данные от пользователя
-            advertisement.user = request.user                     # добавляем имя пользователя и его id для отправления в базу данных
-            advertisement.save()                                  # отправляем данные от пользователя в базу данных
-            url = reversed('main_page')                           # генерируем маршрут к страницы при помощи ее имени
-            return redirect(url)                                  # отправляем ответ пользователю
+@login_required(login_url = reverse_lazy('adv_post'))                            
+def advertisement_post(request):
+    if request.method == "POST":
+        form = AdvertisementForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_advertisement = form.save(commit=False)
+            new_advertisement.user = request.user
+            new_advertisement.save()
+            url = reverse('main_page')
+            return redirect(url)
     else:
         form = AdvertisementForm()
-    form = AdvertisementForm()
     context = {'form': form}
-    return render(request, 'advertisement-post.html', context)
+    return render(request, 'app_advertisement/advertisement-post.html', context)
+
+def advertisement_detail(request, pk): # pk позволяет показать определенное объявление с определенным id
+    advertisement = Advertisement.objects.get(id=pk)
+    context ={'advertisement' : advertisement}
+    return render(request, 'app_advertisement/advertisement.html', context)
